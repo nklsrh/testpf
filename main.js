@@ -1,10 +1,7 @@
-
-
 // defining these up top so we can easily change these later if we need to.
 var ENERGY_CURRENCY = "MR";					  // currecny code for our Energy VC
 var CASH_VC = "CR";					  // currecny code for our Cash VC
 var GOLD_VC = "GD";					  // currecny code for our Gold VC
-
 
 
 function CheckBalance(vcBalnces, code)
