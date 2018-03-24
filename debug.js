@@ -8,6 +8,8 @@ handlers.DebugAddCurrency = function(args)
     var cur = args.currency;
 	var amt = args.amount;
 
+	log.info("cur amt " + cur + " : " + amt);
+	
     var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
 	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
 
