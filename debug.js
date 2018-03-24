@@ -20,3 +20,12 @@ handlers.DebugAddCurrency = function(args)
 
 	return JSON.stringify(results);
 };
+
+
+//TEMPORARY solution until PlayFab's log functions are available from CloudScript
+function Log(message, data) {
+    server.SetTitleData({
+        Key: GetISOTimestamp(),
+        Value: message + ' ' + JSON.stringify(data)
+    });
+}
