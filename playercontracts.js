@@ -1,6 +1,3 @@
-
-
-
 handlers.BuyPlayerContract = function(args) {
 	// get the calling player's inventory and VC balances
 	var GetUserInventoryRequest = {

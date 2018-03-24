@@ -4,7 +4,7 @@ handlers.PlayMatchEnergy = function(args) {
         "PlayFabId": currentPlayerId
     };
 
-     var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
+    var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
 	var userInventory = GetUserInventoryResult.Inventory;
 	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
 	var userVcRecharge = GetUserInventoryResult.VirtualCurrencyRechargeTimes;

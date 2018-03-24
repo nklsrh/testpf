@@ -1,7 +1,4 @@
-
-
 // MULTIPLAYER SHIT
-
 
 handlers.ChallengePlayer = function (args) {
     var targetId = args.TargetId;
