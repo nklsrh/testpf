@@ -13,7 +13,14 @@ handlers.DebugAddCurrency = function(args)
     var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
 	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
 
-	AddVc(userVcBalances, cur, amt);
+	if (amt > 0)
+	{
+		AddVc(userVcBalances, cur, amt);
+	}
+	else
+	{
+		SubtractVc(userVcBalances, cur, -amt);
+	}
 
 	var results = {};
 		results.result = true;
