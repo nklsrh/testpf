@@ -46,3 +46,9 @@ function SubtractVc(vcBalnces, code, qty)
 
     var SubtractUserVirtualCurrencyResult = server.SubtractUserVirtualCurrency(SubtractUserVirtualCurrencyRequest);
 }
+
+function getServerTimestamp() {// miliseconds
+    var now = new Date();
+    var time = now.getTime(); // miliseconds
+    return time;
+}
