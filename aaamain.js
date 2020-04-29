@@ -4,6 +4,7 @@ var CASH_VC = "CR";					  // currecny code for our Cash VC
 var GOLD_VC = "GD";					  // currecny code for our Gold VC
 
 
+
 function CheckBalance(vcBalnces, code)
 {
 	if(vcBalnces != null && vcBalnces.hasOwnProperty(code) && vcBalnces[code] > 0)
