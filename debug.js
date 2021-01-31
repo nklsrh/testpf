@@ -39,13 +39,16 @@ handlers.DebugSetCurrency = function(args)
 	
     var cur = args.currency;
 	var amt = args.amount;
-
-	log.info("cur amt " + cur + " : " + amt);
 	
     var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
 	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
 
+	log.info("cur amt " + cur + " : " + amt);
+	log.info("balanc " + userVcBalances[cur]);
+	
 	var delta = amt - userVcBalances[cur];
+
+	log.info("cur amt " + cur + " : " + amt + " :delta " + delta);
 	
 	if (delta >= 0)
 	{
