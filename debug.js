@@ -56,7 +56,7 @@ handlers.DebugSetCurrency = function(args)
 	}
 	else
 	{
-		SubtractVc(userVcBalances, cur, delta);
+		SubtractVc(userVcBalances, cur, Math.abs(delta));
 	}
 
 	var results = {};
