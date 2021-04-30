@@ -4,6 +4,8 @@ handlers.PlayMatchEnergy = function(args) {
         "PlayFabId": currentPlayerId
     };
 
+	var energyUsed = args.energy;
+
     var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
 	var userInventory = GetUserInventoryResult.Inventory;
 	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
@@ -12,7 +14,7 @@ handlers.PlayMatchEnergy = function(args) {
 	// make sure the player has > 0 Energy before proceeding. 
 	try
 	{
-		if(!CheckBalance(userVcBalances, ENERGY_CURRENCY))
+		if(CheckBalance(userVcBalances, ENERGY_CURRENCY) < energyUsed)
 		{
 			throw "No Energy remaining. Purchase additional Energy or wait: " + userVcRecharge[ENERGY_CURRENCY].SecondsToRecharge + " seconds.";
 		}
@@ -22,7 +24,7 @@ handlers.PlayMatchEnergy = function(args) {
 		return JSON.stringify(ex);
 	}
 	
-	var energyLost = 1;
+	var energyLost = energyUsed;
 	SubtractVc(userVcBalances, ENERGY_CURRENCY, energyLost);
 	
 	var results = {};

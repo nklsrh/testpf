@@ -34,7 +34,7 @@ function AddVc(vcBalnces, code, qty)
 
 function SubtractVc(vcBalnces, code, qty)
 {
-	if(vcBalnces != null && vcBalnces.hasOwnProperty(code) &&  vcBalnces[code] > 0)
+	if(vcBalnces != null && vcBalnces.hasOwnProperty(code) &&  vcBalnces[code] >= qty)
 	{
 		vcBalnces[code] -= qty;
 	}
