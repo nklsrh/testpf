@@ -29,6 +29,9 @@ function AddVc(vcBalnces, code, qty)
 	    "VirtualCurrency": code,
 	    "Amount": qty
     };
+	
+	log.debug("Add VC " + code + " : " + qty);
+
     var AddUserVirtualCurrencyResult = server.AddUserVirtualCurrency(AddUserVirtualCurrencyRequest);
 }
 
@@ -44,6 +47,8 @@ function SubtractVc(vcBalnces, code, qty)
 	    "VirtualCurrency": code,
 	    "Amount": qty
     };
+
+	log.debug("Subtract VC " + code + " : " + qty);
 
     var SubtractUserVirtualCurrencyResult = server.SubtractUserVirtualCurrency(SubtractUserVirtualCurrencyRequest);
 }
