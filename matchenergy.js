@@ -7,7 +7,6 @@ handlers.PlayMatchEnergy = function(args) {
 	var energyUsed = args.energy;
 
     var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
-	var userInventory = GetUserInventoryResult.Inventory;
 	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
 	var userVcRecharge = GetUserInventoryResult.VirtualCurrencyRechargeTimes;
 
@@ -16,7 +15,8 @@ handlers.PlayMatchEnergy = function(args) {
 	{
 		if(CheckBalance(userVcBalances, ENERGY_CURRENCY) < energyUsed)
 		{
-			throw "No Energy remaining. Purchase additional Energy or wait: " + userVcRecharge[ENERGY_CURRENCY].SecondsToRecharge + " seconds.";
+			var energycur = vcBalnces[code];
+			throw energycur + " Energy remaining. Purchase additional Energy or wait: " + userVcRecharge[ENERGY_CURRENCY].SecondsToRecharge + " seconds.";
 		}
 	}
 	catch(ex)
@@ -24,6 +24,9 @@ handlers.PlayMatchEnergy = function(args) {
 		return JSON.stringify(ex);
 	}
 	
+
+	log.debug("PlaymatchEnergy " + ENERGY_CURRENCY + " : " + energyUsed);
+
 	var energyLost = energyUsed;
 	SubtractVc(userVcBalances, ENERGY_CURRENCY, energyLost);
 	
