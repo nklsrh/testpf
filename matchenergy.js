@@ -15,8 +15,15 @@ handlers.PlayMatchEnergy = function(args) {
 	{
 		if(CheckBalance(userVcBalances, ENERGY_CURRENCY) < energyUsed)
 		{
+			var results = {};
+				results.energyLost = 0;
+				results.error = 1;
+			
 			var energycur = vcBalnces[code];
-			throw energycur + " Energy remaining. Purchase additional Energy or wait: " + userVcRecharge[ENERGY_CURRENCY].SecondsToRecharge + " seconds.";
+			var error = energycur + " Energy remaining. Purchase additional Energy or wait: " + userVcRecharge[ENERGY_CURRENCY].SecondsToRecharge + " seconds.";
+			log.debug(error);
+
+			return JSON.stringify(results);
 		}
 	}
 	catch(ex)
