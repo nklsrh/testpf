@@ -11,11 +11,9 @@ handlers.PlayMatchEnergy = function(args) {
 	var userVcRecharge = GetUserInventoryResult.VirtualCurrencyRechargeTimes;
 
 	// make sure the player has > 0 Energy before proceeding. 
-	var hasEnoughEnergy = vcBalnces[ENERGY_CURRENCY] >= energyUsed;
-
 	try
 	{
-		if(hasEnoughEnergy)
+		if(CheckBalance(userVcBalances, ENERGY_CURRENCY, energyUsed))
 		{
 			var results = {};
 				results.energyLost = 0;
@@ -32,8 +30,8 @@ handlers.PlayMatchEnergy = function(args) {
 	{
 		var results = {};
 			results.energyLost = 0;
-			results.error = ex;
-
+			results.error = 1;
+			
 		return JSON.stringify(ex);
 	}
 	

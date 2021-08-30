@@ -5,9 +5,9 @@ var GOLD_VC = "GD";					  // currecny code for our Gold VC
 
 
 
-function CheckBalance(vcBalnces, code)
+function CheckBalance(vcBalnces, code, amount)
 {
-	if(vcBalnces != null && vcBalnces.hasOwnProperty(code) && vcBalnces[code] > 0)
+	if(vcBalnces != null && vcBalnces.hasOwnProperty(code) && vcBalnces[code] >= amount)
 	{
 		return true;
 	}
@@ -19,7 +19,7 @@ function CheckBalance(vcBalnces, code)
 
 function AddVc(vcBalnces, code, qty)
 { 
-	if(vcBalnces != null && vcBalnces.hasOwnProperty(code) &&  vcBalnces[code] > 0)
+	if(vcBalnces != null && vcBalnces.hasOwnProperty(code) &&  vcBalnces[code] >= 0)
 	{
 		vcBalnces[code] += qty;
 	}
