@@ -13,7 +13,7 @@ handlers.PlayMatchEnergy = function(args) {
 	// make sure the player has > 0 Energy before proceeding. 
 	try
 	{
-		if(CheckBalance(userVcBalances, ENERGY_CURRENCY, energyUsed))
+		if(!CheckBalance(userVcBalances, ENERGY_CURRENCY, energyUsed))
 		{
 			var results = {};
 				results.energyLost = 0;
