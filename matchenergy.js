@@ -1,48 +1,22 @@
-handlers.PlayMatchEnergy = function(args) {
-	// get the calling player's inventory and VC balances
-	var GetUserInventoryRequest = {
-        "PlayFabId": currentPlayerId
-    };
-
+// Spends the energy a match costs. The game reads `energyLost` from the JSON string this returns; `error` is 1 when the player did
+// not have enough, in which case nothing is taken.
+handlers.PlayMatchEnergy = function (args)
+{
 	var energyUsed = args.energy;
 
-    var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
-	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
-	var userVcRecharge = GetUserInventoryResult.VirtualCurrencyRechargeTimes;
+	var inventory = GetInventory();
+	var balances = inventory.VirtualCurrency;
 
-	// make sure the player has > 0 Energy before proceeding. 
-	try
+	if (!CheckBalance(balances, ENERGY_CURRENCY, energyUsed))
 	{
-		if(!CheckBalance(userVcBalances, ENERGY_CURRENCY, energyUsed))
-		{
-			var results = {};
-				results.energyLost = 0;
-				results.error = 1;
-			
-			var energycur = vcBalnces[ENERGY_CURRENCY];
-			var error = energycur + " Energy remaining. Purchase additional Energy or wait: " + userVcRecharge[ENERGY_CURRENCY].SecondsToRecharge + " seconds.";
-			log.debug(error);
+		var recharge = inventory.VirtualCurrencyRechargeTimes ? inventory.VirtualCurrencyRechargeTimes[ENERGY_CURRENCY] : null;
+		log.debug((balances[ENERGY_CURRENCY] || 0) + " energy remaining; next in " + (recharge ? recharge.SecondsToRecharge : "?") + " seconds.");
 
-			return JSON.stringify(results);
-		}
+		return JSON.stringify({ energyLost: 0, error: 1 });
 	}
-	catch(ex)
-	{
-		var results = {};
-			results.energyLost = 0;
-			results.error = 1;
-			
-		return JSON.stringify(ex);
-	}
-	
 
-	log.debug("PlaymatchEnergy " + ENERGY_CURRENCY + " : " + energyUsed);
+	log.debug("PlayMatchEnergy " + ENERGY_CURRENCY + " : " + energyUsed);
+	SubtractVc(balances, ENERGY_CURRENCY, energyUsed);
 
-	var energyLost = energyUsed;
-	SubtractVc(userVcBalances, ENERGY_CURRENCY, energyLost);
-	
-	var results = {};
-		results.energyLost = energyLost;
-
-	return JSON.stringify(results);
+	return JSON.stringify({ energyLost: energyUsed });
 };

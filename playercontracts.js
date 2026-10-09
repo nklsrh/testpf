@@ -1,43 +1,18 @@
-handlers.BuyPlayerContract = function(args) {
-	// get the calling player's inventory and VC balances
-	var GetUserInventoryRequest = {
-        "PlayFabId": currentPlayerId
-    };
+// Buys a player contract for `args.matches` matches, at 100 cash each. Returns the JSON string { amountCost, currency }, or a JSON
+// string holding the reason when the player cannot afford it.
+var CONTRACT_COST_PER_MATCH = 100;
 
-    var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
-	var userInventory = GetUserInventoryResult.Inventory;
-	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
-	
-	var cost = args.matches * 100;
+handlers.BuyPlayerContract = function (args)
+{
+	var balances = GetInventory().VirtualCurrency;
+	var cost = args.matches * CONTRACT_COST_PER_MATCH;
 
-	// make sure the player has > 0 CASH_VC before proceeding. 
-	try
+	if (!CheckBalance(balances, CASH_VC, cost))
 	{
-		if(!CheckBalance(userVcBalances, CASH_VC, cost))
-		{
-			throw "No CASH_VC remaining. Purchase additional CASH_VC";
-		}
+		return JSON.stringify("Not enough " + CASH_VC + " for this contract.");
 	}
-	catch(ex)
-	{
-		return JSON.stringify(ex);
-	}
-	
-	SubtractVc(userVcBalances, CASH_VC, cost);
-	
-	var results = {};
-		results.amountCost = cost;
-		results.currency = CASH_VC;
 
-	return JSON.stringify(results);
+	SubtractVc(balances, CASH_VC, cost);
+
+	return JSON.stringify({ amountCost: cost, currency: CASH_VC });
 };
-
-
-
-
-
-
-
-
-
-

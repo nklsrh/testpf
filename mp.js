@@ -1,51 +1,36 @@
-// MULTIPLAYER SHIT
+// Turn-based multiplayer pushes. The game does not call these at the moment.
 
-handlers.ChallengePlayer = function (args) {
-    var targetId = args.TargetId;
-	var groupId = args.GroupId;
-
-	// get current player profile
-	var profile = server.GetPlayerProfile({
-		PlayFabId : currentPlayerId
-	}).PlayerProfile;
-
-	// try to send push notification
-	try {
+// Sends `message` to `targetId` as a push notification. A player who has not registered for pushes is skipped.
+function SendPush(targetId, title, message)
+{
+	try
+	{
 		server.SendPushNotification({
-			Recipient : targetId,
-			Package : {
-				Message : `Your turn with ${profile.DisplayName}: ${groupId}`,
-				Title: "${profile.DisplayName} just finished their turn!",
-			}
+			Recipient: targetId,
+			Package: { Title: title, Message: message }
 		});
-	} catch (ex) {
-		// Target player has not registered for Push Notifications
+	}
+	catch (ex)
+	{
+		// The target has not registered for push notifications.
 	}
 }
 
-
-handlers.InvitePlayer = function (args) {
-    var targetId = args.TargetId;
-	var groupId = args.GroupId;
-
-	// get current player profile
-	var profile = server.GetPlayerProfile({
-		PlayFabId : currentPlayerId
-	}).PlayerProfile;
-	
-	var inviter = profile.DisplayName;
-
-	// try to send push notification
-	try {
-		server.SendPushNotification({
-			Recipient : targetId,
-			Package : {
-				Message : `Join the match: ${groupId}`,
-				Title: "${inviter} wants to play",
-				// CustomData: "{'groupID': ${groupId}}",
-			}
-		});
-	} catch (ex) {
-		// Target player has not registered for Push Notifications
-	}
+function CurrentDisplayName()
+{
+	return server.GetPlayerProfile({ PlayFabId: currentPlayerId }).PlayerProfile.DisplayName;
 }
+
+// Tells `args.TargetId` that it is their turn in match `args.GroupId`.
+handlers.ChallengePlayer = function (args)
+{
+	var name = CurrentDisplayName();
+	SendPush(args.TargetId, name + " just finished their turn!", "Your turn with " + name + ": " + args.GroupId);
+};
+
+// Invites `args.TargetId` to match `args.GroupId`.
+handlers.InvitePlayer = function (args)
+{
+	var name = CurrentDisplayName();
+	SendPush(args.TargetId, name + " wants to play", "Join the match: " + args.GroupId);
+};
