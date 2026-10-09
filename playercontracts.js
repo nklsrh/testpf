@@ -4,6 +4,11 @@ var CONTRACT_COST_PER_MATCH = 100;
 
 handlers.BuyPlayerContract = function (args)
 {
+	if (!(args.matches >= 1) || args.matches !== Math.floor(args.matches))
+	{
+		return JSON.stringify("A contract needs a whole number of matches.");
+	}
+
 	var balances = GetInventory().VirtualCurrency;
 	var cost = args.matches * CONTRACT_COST_PER_MATCH;
 

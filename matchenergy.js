@@ -4,6 +4,12 @@ handlers.PlayMatchEnergy = function (args)
 {
 	var energyUsed = args.energy;
 
+	// A whole number of energy, at least one: anything else is not a match.
+	if (!(energyUsed >= 1) || energyUsed !== Math.floor(energyUsed))
+	{
+		return JSON.stringify({ energyLost: 0, error: 1 });
+	}
+
 	var inventory = GetInventory();
 	var balances = inventory.VirtualCurrency;
 
