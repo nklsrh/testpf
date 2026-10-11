@@ -1,0 +1,37 @@
+name: CloudScript
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+# One deploy at a time, so two quick merges can't publish out of order.
+concurrency:
+  group: cloudscript-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/cloudscript.mjs check
+
+  deploy:
+    needs: check
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment: playfab
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/cloudscript.mjs deploy
+        env:
+          PLAYFAB_TITLE_ID: 28AEC
+          PLAYFAB_SECRET_KEY: ${{ secrets.PLAYFAB_SECRET_KEY }}
