@@ -23,26 +23,30 @@ handlers.DebugSetCurrency = function(args)
 	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
 	var balance = userVcBalances[cur] || 0;
 
-	if (cur === ENERGY_CURRENCY)
+	// Event energy can only be pushed up to its recharge max. Only increases are capped: a balance already above it
+	// (energy bought or granted) is left alone.
+	if (cur === ENERGY_CURRENCY && amt > balance)
 	{
-		amt = Math.min(amt, EC_MAX_BALANCE);
+		var recharge = GetUserInventoryResult.VirtualCurrencyRechargeTimes;
+		var max = (recharge && recharge[cur] && recharge[cur].RechargeMax) || EC_MAX_BALANCE;
+		amt = Math.min(amt, Math.max(balance, max));
 	}
 
 	var delta = amt - balance;
 
 	log.debug("DebugSetCurrency " + cur + " : " + amt + " :delta " + delta);
 
-	if (delta > 0 && (cur === GOLD_VC || cur === CASH_VC))
+	if (cur === GOLD_VC || cur === CASH_VC)
 	{
 		var paid = paidCents();
 
-		// A balance that was edited in before this guard existed: flag it, leave it for review.
-		if (paid === 0 && ((cur === GOLD_VC && balance > GD_ABSURD) || (cur === CASH_VC && balance > CR_ABSURD)))
+		// A balance edited in before this guard existed - flagged whichever way this push goes, left for review.
+		if (isAbsurdBalance(cur, balance, paid))
 		{
-			flagSuspect(cur + "_absurd_balance", { balance: balance });
+			flagSuspect(cur + "_absurd_balance", { balance: balance, paidCents: paid });
 		}
 
-		delta = budgetIncrease(cur, delta, paid);
+		if (delta > 0) delta = budgetIncrease(cur, delta, paid);
 	}
 
 	if (delta > 0)

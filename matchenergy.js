@@ -6,15 +6,6 @@ handlers.PlayMatchEnergy = function(args) {
 
 	var energyUsed = Math.floor(Number(args.energy));
 
-	// A match start the server saw. Only Quickmatches and Slogfest call this, so it counts event matches, not World Tour
-	// or Weekly Innings - still a floor detection can trust, unlike the client-posted MatchesPlayed.
-	var matches = (readInternal(MATCHES_KEY) || 0) + 1;
-	writeInternal(MATCHES_KEY, matches);
-	server.UpdatePlayerStatistics({
-		PlayFabId: currentPlayerId,
-		Statistics: [{ StatisticName: SERVER_MATCHES_STAT, Value: matches }]
-	});
-
 	if (!(energyUsed > 0))
 	{
 		var results = {};
@@ -56,6 +47,15 @@ handlers.PlayMatchEnergy = function(args) {
 
 	var energyLost = energyUsed;
 	SubtractVc(userVcBalances, ENERGY_CURRENCY, energyLost);
+
+	// A match start the server saw and charged for. Only Quickmatches and Slogfest call this, so it counts event matches,
+	// not World Tour or Weekly Innings - still a floor detection can trust, unlike the client-posted MatchesPlayed.
+	var matches = (readInternal(MATCHES_KEY) || 0) + 1;
+	writeInternal(MATCHES_KEY, matches);
+	server.UpdatePlayerStatistics({
+		PlayFabId: currentPlayerId,
+		Statistics: [{ StatisticName: SERVER_MATCHES_STAT, Value: matches }]
+	});
 
 	var results = {};
 		results.energyLost = energyLost;
