@@ -1,67 +1,60 @@
-handlers.DebugAddCurrency = function(args) 
+// DebugAddCurrency was removed: nothing in the client calls it, and it let any signed-in caller grant themselves any amount.
+
+handlers.DebugSetCurrency = function(args)
 {
-	var GetUserInventoryRequest = 
+	var GetUserInventoryRequest =
 	{
         "PlayFabId": currentPlayerId
     };
-	
+
     var cur = args.currency;
-	var amt = args.amount;
-
-	log.info("cur amt " + cur + " : " + amt);
-	
-    var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
-	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
-
-	if (amt > 0)
-	{
-		AddVc(userVcBalances, cur, amt);
-	}
-	else
-	{
-		SubtractVc(userVcBalances, cur, -amt);
-	}
+	var amt = Math.floor(Number(args.amount));
 
 	var results = {};
 		results.result = true;
 
-	return JSON.stringify(results);
-};
-
-
-
-handlers.DebugSetCurrency = function(args) 
-{
-	var GetUserInventoryRequest = 
+	if (!GUARDED_CURRENCIES[cur] || !(amt >= 0))
 	{
-        "PlayFabId": currentPlayerId
-    };
-	
-    var cur = args.currency;
-	var amt = args.amount;
-	
+		log.debug("DebugSetCurrency rejected " + cur + " : " + args.amount);
+		return JSON.stringify(results);
+	}
+
     var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
 	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
+	var balance = userVcBalances[cur] || 0;
 
-	log.info("cur amt " + cur + " : " + amt);
-	log.info("balanc " + userVcBalances[cur]);
-	
-	var delta = amt - userVcBalances[cur];
+	if (cur === ENERGY_CURRENCY)
+	{
+		amt = Math.min(amt, EC_MAX_BALANCE);
+	}
 
-	log.info("cur amt " + cur + " : " + amt + " :delta " + delta);
-	
-	if (delta >= 0)
+	var delta = amt - balance;
+
+	log.debug("DebugSetCurrency " + cur + " : " + amt + " :delta " + delta);
+
+	if (delta > 0 && (cur === GOLD_VC || cur === CASH_VC))
+	{
+		var paid = paidCents();
+
+		// A balance that was edited in before this guard existed: flag it, leave it for review.
+		if (paid === 0 && ((cur === GOLD_VC && balance > GD_ABSURD) || (cur === CASH_VC && balance > CR_ABSURD)))
+		{
+			flagSuspect(cur + "_absurd_balance", { balance: balance });
+		}
+
+		delta = budgetIncrease(cur, delta, paid);
+	}
+
+	if (delta > 0)
 	{
 		AddVc(userVcBalances, cur, delta);
 	}
-	else
+	else if (delta < 0)
 	{
 		SubtractVc(userVcBalances, cur, Math.abs(delta));
 	}
 
-	var results = {};
-		results.result = true;
-
+	results.balance = balance + delta;
 	return JSON.stringify(results);
 };
 
