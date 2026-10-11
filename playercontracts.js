@@ -13,7 +13,7 @@ handlers.BuyPlayerContract = function(args) {
 	// make sure the player has > 0 CASH_VC before proceeding. 
 	try
 	{
-		if(!CheckBalance(userVcBalances, CASH_VC, cost))
+		if(!(cost > 0) || !CheckBalance(userVcBalances, CASH_VC, cost))
 		{
 			throw "No CASH_VC remaining. Purchase additional CASH_VC";
 		}

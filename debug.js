@@ -1,67 +1,64 @@
-handlers.DebugAddCurrency = function(args) 
+// DebugAddCurrency was removed: nothing in the client calls it, and it let any signed-in caller grant themselves any amount.
+
+handlers.DebugSetCurrency = function(args)
 {
-	var GetUserInventoryRequest = 
+	var GetUserInventoryRequest =
 	{
         "PlayFabId": currentPlayerId
     };
-	
+
     var cur = args.currency;
-	var amt = args.amount;
-
-	log.info("cur amt " + cur + " : " + amt);
-	
-    var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
-	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
-
-	if (amt > 0)
-	{
-		AddVc(userVcBalances, cur, amt);
-	}
-	else
-	{
-		SubtractVc(userVcBalances, cur, -amt);
-	}
+	var amt = Math.floor(Number(args.amount));
 
 	var results = {};
 		results.result = true;
 
-	return JSON.stringify(results);
-};
-
-
-
-handlers.DebugSetCurrency = function(args) 
-{
-	var GetUserInventoryRequest = 
+	if (!GUARDED_CURRENCIES[cur] || !(amt >= 0))
 	{
-        "PlayFabId": currentPlayerId
-    };
-	
-    var cur = args.currency;
-	var amt = args.amount;
-	
+		log.debug("DebugSetCurrency rejected " + cur + " : " + args.amount);
+		return JSON.stringify(results);
+	}
+
     var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
 	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
+	var balance = userVcBalances[cur] || 0;
 
-	log.info("cur amt " + cur + " : " + amt);
-	log.info("balanc " + userVcBalances[cur]);
-	
-	var delta = amt - userVcBalances[cur];
+	// Event energy can only be pushed up to its recharge max. Only increases are capped: a balance already above it
+	// (energy bought or granted) is left alone.
+	if (cur === ENERGY_CURRENCY && amt > balance)
+	{
+		var recharge = GetUserInventoryResult.VirtualCurrencyRechargeTimes;
+		var max = (recharge && recharge[cur] && recharge[cur].RechargeMax) || EC_MAX_BALANCE;
+		amt = Math.min(amt, Math.max(balance, max));
+	}
 
-	log.info("cur amt " + cur + " : " + amt + " :delta " + delta);
-	
-	if (delta >= 0)
+	var delta = amt - balance;
+
+	log.debug("DebugSetCurrency " + cur + " : " + amt + " :delta " + delta);
+
+	if (cur === GOLD_VC || cur === CASH_VC)
+	{
+		var paid = paidCents();
+
+		// A balance edited in before this guard existed - flagged whichever way this push goes, left for review.
+		if (isAbsurdBalance(cur, balance, paid))
+		{
+			flagSuspect(cur + "_absurd_balance", { balance: balance, paidCents: paid });
+		}
+
+		if (delta > 0) delta = budgetIncrease(cur, delta, paid);
+	}
+
+	if (delta > 0)
 	{
 		AddVc(userVcBalances, cur, delta);
 	}
-	else
+	else if (delta < 0)
 	{
 		SubtractVc(userVcBalances, cur, Math.abs(delta));
 	}
 
-	var results = {};
-		results.result = true;
-
+	results.balance = balance + delta;
 	return JSON.stringify(results);
 };
 
