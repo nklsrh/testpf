@@ -12,13 +12,17 @@
 var INNINGS_MAX = 400;            // one Weekly Innings attempt; a week sums seven daily bests
 var STEP_FLAG_MULTIPLE = 5;       // a rise this many steps past the limit gets flagged
 
-// max: the highest value the statistic can hold. step: the most it can rise in one submit (null = no limit).
+// max: the highest value the statistic can hold. step: the most it can rise in one submit (null = no limit). The step only
+// applies once the player has a value, so a first submit is checked against max alone - except where stepFromZero says
+// a fresh statistic really does start at zero (a new week's innings total).
 var STAT_RULES = [
 	{ pattern: /^Trophies$/, max: 50000, step: 500 },
 	{ pattern: /^MatchesPlayed$/, max: 100000, step: 50 },
 	{ pattern: /^Wins$/, max: 100000, step: 50 },
-	{ pattern: /^SquadOverall$/, max: 110, step: null },
-	{ pattern: /^DIW\d{6}D\d{1,2}$/, max: INNINGS_MAX * 7, step: INNINGS_MAX },
+	// Squad OVR keeps climbing as new cards and upgrades ship, so its ceiling is title data ("statMaxSquadOverall"),
+	// raised without a deploy. The step is what really bounds it: a squad average moves a few points per new card.
+	{ pattern: /^SquadOverall$/, max: 200, maxTitleDataKey: "statMaxSquadOverall", step: 15 },
+	{ pattern: /^DIW\d{6}D\d{1,2}$/, max: INNINGS_MAX * 7, step: INNINGS_MAX, stepFromZero: true },
 	{ pattern: /^TRN\d{6}D\d{1,2}$/, max: 5000, step: null },
 	{ pattern: /^event_tier_[A-Za-z0-9_\-]{1,64}$/, max: 1000000, step: null },
 	{ pattern: /^season_[A-Za-z0-9_\-]{1,64}$/, max: 10000000, step: null }
@@ -55,6 +59,9 @@ handlers.SubmitStats = function(args)
 
 	if (candidates.length === 0) return { written: [], refused: refused };
 
+	var maxKeys = candidates.filter(function (c) { return c.rule.maxTitleDataKey; }).map(function (c) { return c.rule.maxTitleDataKey; });
+	var titleMax = maxKeys.length > 0 ? (server.GetTitleData({ Keys: maxKeys }).Data || {}) : {};
+
 	var current = {};
 	var existing = server.GetPlayerStatistics({
 		PlayFabId: currentPlayerId,
@@ -66,15 +73,17 @@ handlers.SubmitStats = function(args)
 	var implausible = {};
 	candidates.forEach(function (c)
 	{
+		var hasValue = current.hasOwnProperty(c.name);
 		var before = current[c.name] || 0;
 		var value = c.value;
-		if (value > c.rule.max)
+		var max = Number(titleMax[c.rule.maxTitleDataKey]) || c.rule.max;
+		if (value > max)
 		{
 			implausible[c.name] = { before: before, asked: value };
 			refused.push(c.name);
 			return;
 		}
-		if (c.rule.step !== null && value - before > c.rule.step)
+		if (c.rule.step !== null && (hasValue || c.rule.stepFromZero) && value - before > c.rule.step)
 		{
 			if (value - before > c.rule.step * STEP_FLAG_MULTIPLE) implausible[c.name] = { before: before, asked: value };
 			value = before + c.rule.step;
