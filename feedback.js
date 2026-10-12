@@ -28,7 +28,8 @@ handlers.submitFeedback = function(args) {
         mood: clip(args.mood, 16),
         category: clip(args.category, 24),
         message: clip(args.message, 1000),
-        source: clip(args.source, 32),
+        // "source" is a reserved PlayFab event field.
+        origin: clip(args.source, 32),
         context: clip(args.context, 300),
         version: clip(args.version, 32),
         platform: clip(args.platform, 32),
@@ -50,7 +51,7 @@ handlers.submitFeedback = function(args) {
     var header = (urgent ? "🚨 " : "") + "**" + report.category + "** · " + report.mood + " · v" + report.version
         + " · " + report.platform + " · " + report.device
         + "\nPlayer `" + currentPlayerId + "` · session " + report.session + " · " + report.matches + " matches"
-        + (report.spender ? " · 💰 spender" : "") + " · from " + report.source + " on " + report.screen;
+        + (report.spender ? " · 💰 spender" : "") + " · from " + report.origin + " on " + report.screen;
     var content = header
         + (report.context ? "\n> " + report.context : "")
         + (report.message ? "\n\n" + report.message : "\n\n_(no message)_");
