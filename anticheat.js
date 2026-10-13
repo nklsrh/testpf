@@ -85,7 +85,7 @@ function budgetIncrease(cur, delta, paid)
 	if (ledger.day !== today)
 	{
 		// The first sync of a day covers every day since the last one (a ledger from before this change stored
-		// the day as yyyymmdd, which reads as far in the past: the full span, once).
+		// the day as yyyymmdd, which reads as far in the future: the span falls back to one day, once).
 		ledger.span = ledger.day > 0 ? Math.min(MAX_OFFLINE_DAYS, Math.max(1, today - ledger.day)) : 1;
 		ledger.day = today;
 		ledger.used = 0;
