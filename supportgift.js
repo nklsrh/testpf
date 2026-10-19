@@ -53,7 +53,8 @@ handlers.grantSupportGift = function (args) {
         try { sent = JSON.parse(internal[GIFT_SENT_KEY].Value) || []; } catch (e) { sent = []; }
     }
 
-    if (sent.indexOf(giftId) < 0) {
+    var alreadySent = sent.indexOf(giftId) >= 0;
+    if (!alreadySent) {
         var granted = server.GrantItemsToUser({ PlayFabId: currentPlayerId, ItemIds: [GIFT_ITEM_ID], Annotation: giftId });
         var instance = granted.ItemGrantResults && granted.ItemGrantResults[0];
         if (!instance || !instance.Result) {
@@ -73,5 +74,6 @@ handlers.grantSupportGift = function (args) {
         server.WritePlayerEvent({ PlayFabId: currentPlayerId, EventName: "support_gift_granted", Body: { giftId: giftId, reward: reward, reason: reason } });
     }
 
-    return { ok: true, giftId: giftId };
+    // alreadySent lets the gift page say "already had it" rather than claim a second send.
+    return { ok: true, giftId: giftId, alreadySent: alreadySent };
 };
