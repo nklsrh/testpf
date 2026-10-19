@@ -3,10 +3,10 @@
 // custom data `reward` (pack drops separated by ";", e.g. "Currency_CR|2000;Currency_GD|20") and `reason`
 // (shown on the gift screen). The client turns that into a pack the player taps to claim, which consumes it.
 //
-// Run it from a scheduled task, "Run actions on each player in a segment" > "Execute Cloud Script", with
-// arguments {"key": "...", "giftId": "trination-oct26", "reward": "Currency_CR|2000", "reason": "..."}.
-// Point the task at the "Support gift" segment (players tagged support_gift) for named players, or at any
-// segment for bulk. Steps in supercricketu-fresh COMP_SYSTEM.md.
+// Arguments: {"key": "...", "giftId": "trination-oct26", "reward": "Currency_CR|2000", "reason": "..."}.
+// One player: Game Manager > Players > the player > Cloud Script tab > run grantSupportGift.
+// Many: a scheduled task, "Actions on each player in a segment" > "Execute Cloud Script", on any segment.
+// Steps in supercricketu-fresh COMP_SYSTEM.md.
 //
 // Any client can call a handler, so it only runs with the key held in Title Internal Data, which clients
 // cannot read. Granting is idempotent per giftId, so re-running a task or overlapping segments cannot pay
@@ -14,7 +14,6 @@
 
 var GIFT_ITEM_ID = "support_gift";
 var GIFT_KEY_NAME = "supportGiftKey";
-var GIFT_TAG = "support_gift";
 var GIFT_SENT_KEY = "gifts_sent";
 
 // Only the forms the client pays, with ceilings that catch a slipped zero rather than limit real comps.
@@ -72,14 +71,6 @@ handlers.grantSupportGift = function (args) {
         sent.push(giftId);
         server.UpdateUserInternalData({ PlayFabId: currentPlayerId, Data: { gifts_sent: JSON.stringify(sent.slice(-50)) } });
         server.WritePlayerEvent({ PlayFabId: currentPlayerId, EventName: "support_gift_granted", Body: { giftId: giftId, reward: reward, reason: reason } });
-    }
-
-    // Out of the named-player queue either way, so the next run against that segment does not pick them up.
-    // A segment run reaches players who never had the tag; the gift is already done, so this must not fail it.
-    try {
-        server.RemovePlayerTag({ PlayFabId: currentPlayerId, TagName: GIFT_TAG });
-    } catch (e) {
-        log.info("grantSupportGift: no tag to remove", { giftId: giftId });
     }
 
     return { ok: true, giftId: giftId };
