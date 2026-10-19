@@ -34,9 +34,14 @@ function supportGiftDrops(reward) {
 handlers.grantSupportGift = function (args) {
     args = args || {};
 
+    // Trimmed of spaces and quote marks on both sides: Game Manager's editors keep whatever was pasted.
+    var bare = function (v) { return String(v == null ? "" : v).trim().replace(/^["']+|["']+$/g, ""); };
     var keyData = server.GetTitleInternalData({ Keys: [GIFT_KEY_NAME] }).Data || {};
-    if (!keyData[GIFT_KEY_NAME] || args.key !== keyData[GIFT_KEY_NAME]) {
-        return { ok: false, reason: "not_authorised" };
+    if (!bare(keyData[GIFT_KEY_NAME])) {
+        return { ok: false, reason: "key_not_set: add " + GIFT_KEY_NAME + " to Title Internal Data" };
+    }
+    if (bare(args.key) !== bare(keyData[GIFT_KEY_NAME])) {
+        return { ok: false, reason: "not_authorised: key does not match " + GIFT_KEY_NAME };
     }
 
     var giftId = String(args.giftId || "").trim();
