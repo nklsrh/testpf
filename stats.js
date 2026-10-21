@@ -25,7 +25,10 @@ var STAT_RULES = [
 	{ pattern: /^DIW\d{6}D\d{1,2}$/, max: INNINGS_MAX * 7, step: INNINGS_MAX, stepFromZero: true },
 	{ pattern: /^TRN\d{6}D\d{1,2}$/, max: 5000, step: null },
 	{ pattern: /^event_tier_[A-Za-z0-9_\-]{1,64}$/, max: 1000000, step: null },
-	{ pattern: /^season_[A-Za-z0-9_\-]{1,64}$/, max: 10000000, step: null }
+	{ pattern: /^season_[A-Za-z0-9_\-]{1,64}$/, max: 10000000, step: null },
+	// The Season Ticket season a player holds (supercricketu-fresh SCSeasonTicket.HolderStat): cosmetic, it only puts
+	// their name in gold on others' boards.
+	{ pattern: /^SeasonTicket$/, max: 1000, step: null }
 ];
 
 function statRule(name)
