@@ -19,6 +19,15 @@ handlers.DebugSetCurrency = function(args)
 		return JSON.stringify(results);
 	}
 
+	// Event tickets are the server's: spent by PlayMatchEnergy, refilled by refillEventEnergy, recharged by PlayFab.
+	// Clients from 23 Oct never push them; an older client's push is ignored, since letting it set EC back to the
+	// cap after every match was unlimited tickets.
+	if (cur === ENERGY_CURRENCY)
+	{
+		log.debug("DebugSetCurrency ignored " + cur + " : " + args.amount);
+		return JSON.stringify(results);
+	}
+
     var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
 	var userVcBalances = GetUserInventoryResult.VirtualCurrency;
 	var balance = userVcBalances[cur] || 0;
