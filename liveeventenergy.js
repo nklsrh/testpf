@@ -3,14 +3,16 @@
 // PlayMatchEnergy; this is the other half: one EC for a watched ad, or a refill to the cap for gems. Both write EC on
 // the server, so a recharge PlayFab has banked is never overwritten by a client balance.
 //
-// The gems are taken on the client (gems are a client-pushed mirror, see SCCurrencySync), so this cannot see them
-// paid. The daily caps below bound what a forged call can get: at most a few refills of a few matches a day.
+// A gem refill takes its gems here too, from PlayFab's GD, so a forged call costs real gems. The client takes the
+// same gems from its own copy and pushes the result, which lands on the same balance. An ad refill is not verified
+// with the ad network, so the daily caps below bound what a forged call can get: six tickets a day.
 //
 // Arguments: {"mode": "ad"} or {"mode": "gems"}. Returns {ok, balance, reason}.
 
 var LE_REFILL_KEY = "leRefills";
 var LE_ADS_PER_DAY = 6;
 var LE_GEM_REFILLS_PER_DAY = 5;
+var LE_REFILL_GEMS = 20;   // SCTournamentLiveEvent.RefillGems
 
 handlers.refillEventEnergy = function (args) {
     var mode = args && args.mode === "gems" ? "gems" : "ad";
@@ -28,6 +30,13 @@ handlers.refillEventEnergy = function (args) {
 
     var amount = mode === "gems" ? max - balance : Math.min(1, max - balance);
     if (amount <= 0) return { ok: false, reason: "full", balance: balance };
+
+    if (mode === "gems")
+    {
+        var gems = (inventory.VirtualCurrency || {})[GOLD_VC] || 0;
+        if (gems < LE_REFILL_GEMS) return { ok: false, reason: "gems", balance: balance };
+        server.SubtractUserVirtualCurrency({ PlayFabId: currentPlayerId, VirtualCurrency: GOLD_VC, Amount: LE_REFILL_GEMS });
+    }
 
     var result = server.AddUserVirtualCurrency({ PlayFabId: currentPlayerId, VirtualCurrency: ENERGY_CURRENCY, Amount: amount });
     used[mode] = (used[mode] || 0) + 1;
