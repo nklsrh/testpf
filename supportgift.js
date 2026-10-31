@@ -17,8 +17,9 @@ var GIFT_KEY_NAME = "supportGiftKey";
 var GIFT_SENT_KEY = "gifts_sent";
 
 // Only the forms the client pays, with ceilings that catch a slipped zero rather than limit real comps.
-var GIFT_DROP = /^(Currency_(CR|GD)\|(\d+)|Cricketer_IntId:\d+)$/;
-var GIFT_MAX = { CR: 100000, GD: 1000 };
+// Unlimited_Minutes|N is unlimited event tickets for N minutes, paid by the client on the claim (builds 3220 and up).
+var GIFT_DROP = /^((Currency_(CR|GD)|Unlimited_Minutes)\|(\d+)|Cricketer_IntId:\d+)$/;
+var GIFT_MAX = { CR: 100000, GD: 1000, Unlimited_Minutes: 1440 };
 
 function supportGiftDrops(reward) {
     var drops = String(reward || "").split(";").map(function (d) { return d.trim(); }).filter(function (d) { return d.length > 0; });
@@ -26,7 +27,8 @@ function supportGiftDrops(reward) {
     for (var i = 0; i < drops.length; i++) {
         var m = GIFT_DROP.exec(drops[i]);
         if (!m) return null;
-        if (m[2] && (parseInt(m[3], 10) <= 0 || parseInt(m[3], 10) > GIFT_MAX[m[2]])) return null;
+        var kind = m[3] || m[2];
+        if (m[2] && (parseInt(m[4], 10) <= 0 || parseInt(m[4], 10) > GIFT_MAX[kind])) return null;
     }
     return drops.join(";");
 }
