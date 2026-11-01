@@ -1,11 +1,11 @@
 // ---- Live event energy refills (supercricketu-fresh SCTournamentLiveEvent) ----------------------------------------
 // Live events spend EC, the energy virtual currency whose cap and recharge are set in Game Manager. The spend is
-// PlayMatchEnergy; this is the other half: one EC for a watched ad, or a refill to the cap for gems. Both write EC on
+// PlayMatchEnergy; this is the other half: two EC for a watched ad, or a refill to the cap for gems. Both write EC on
 // the server, so a recharge PlayFab has banked is never overwritten by a client balance.
 //
 // A gem refill takes its gems here too, from PlayFab's GD, so a forged call costs real gems. The client takes the
 // same gems from its own copy and pushes the result, which lands on the same balance. An ad refill is not verified
-// with the ad network, so the daily caps below bound what a forged call can get: six tickets a day.
+// with the ad network, so the daily caps below bound what a forged call can get: twelve tickets a day.
 //
 // Arguments: {"mode": "ad"} or {"mode": "gems"}. Returns {ok, balance, reason}.
 
@@ -13,6 +13,7 @@ var LE_REFILL_KEY = "leRefills";
 var LE_ADS_PER_DAY = 6;
 var LE_GEM_REFILLS_PER_DAY = 5;
 var LE_REFILL_GEMS = 20;   // SCTournamentLiveEvent.RefillGems
+var LE_AD_TICKETS = 2;     // SCTournamentLiveEvent.AdRefillTickets: one ad pays for one match (a match costs 2)
 
 handlers.refillEventEnergy = function (args) {
     var mode = args && args.mode === "gems" ? "gems" : "ad";
@@ -28,7 +29,7 @@ handlers.refillEventEnergy = function (args) {
     var recharge = (inventory.VirtualCurrencyRechargeTimes || {})[ENERGY_CURRENCY];
     var max = recharge && recharge.RechargeMax ? recharge.RechargeMax : 5;
 
-    var amount = mode === "gems" ? max - balance : Math.min(1, max - balance);
+    var amount = mode === "gems" ? max - balance : Math.min(LE_AD_TICKETS, max - balance);
     if (amount <= 0) return { ok: false, reason: "full", balance: balance };
 
     if (mode === "gems")
