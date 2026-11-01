@@ -76,7 +76,8 @@ handlers.SubmitStats = function(args)
 	var implausible = {};
 	candidates.forEach(function (c)
 	{
-		var hasValue = current.hasOwnProperty(c.name);
+		// A stored 0 counts as no value: a player who posted before building a squad must still be able to post it.
+		var hasValue = current.hasOwnProperty(c.name) && current[c.name] > 0;
 		var before = current[c.name] || 0;
 		var value = c.value;
 		var max = Number(titleMax[c.rule.maxTitleDataKey]) || c.rule.max;

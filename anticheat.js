@@ -9,7 +9,7 @@
 //
 // Gold bought with real money also arrives here (the client adds it locally after the store purchase), so validated spend
 // raises the gold and cash budgets. iOS receipts are not validated yet, which is why the hard caps leave room for an
-// unvalidated purchase or two: past the soft cap a player is only flagged, not clamped.
+// unvalidated purchase or two: past the soft cap a player is only watched, not flagged or clamped.
 // Tune these against real players before tightening them.
 var GD_DAILY_SOFT = 400;          // free gold a day: star challenges (20-75 each) + daily reward (10/50)
 var GD_DAILY_HARD = 2000;         // above this, without validated spend, the player is flagged as over the hard cap
@@ -54,10 +54,18 @@ function paidCents()
 	return (profile && profile.TotalValueToDateInUSD) || 0;
 }
 
-// Records why a player looks wrong and raises the public-board flag. Never blocks anything by itself.
-function flagSuspect(reason, detail)
+// Records why a player looks wrong and raises the public-board flag. Never blocks anything by itself. watchOnly records
+// the reason under "watch" without raising the flag or counting towards it, for signals new players trip legitimately.
+function flagSuspect(reason, detail, watchOnly)
 {
 	var flag = readInternal(FLAG_KEY) || { reasons: {}, first: new Date().toISOString(), count: 0 };
+	if (watchOnly)
+	{
+		flag.watch = flag.watch || {};
+		flag.watch[reason] = detail;
+		writeInternal(FLAG_KEY, flag);
+		return;
+	}
 	var alreadyFlagged = flag.count > 0;
 	flag.reasons[reason] = detail;
 	flag.last = new Date().toISOString();
@@ -107,7 +115,8 @@ function budgetIncrease(cur, delta, paid)
 	}
 	else if (ledger.used > soft && newPaid === 0)
 	{
-		flagSuspect(cur + "_over_soft_cap", { window: ledger.used, days: span, paidCents: paid });
+		// Watch only: most players past the soft cap are new accounts on their first day (median 69k CR, 1 Nov).
+		flagSuspect(cur + "_over_soft_cap", { window: ledger.used, days: span, paidCents: paid }, true);
 	}
 
 	return delta;
