@@ -23,6 +23,9 @@ var STAT_RULES = [
 	// raised without a deploy. The step is what really bounds it: a squad average moves a few points per new card.
 	{ pattern: /^SquadOverall$/, max: 200, maxTitleDataKey: "statMaxSquadOverall", step: 15 },
 	{ pattern: /^DIW\d{6}D\d{1,2}$/, max: INNINGS_MAX * 7, step: INNINGS_MAX, stepFromZero: true },
+	// The same week's total with no tier (SGWeek.AllStatName, "DIW261102A"): the friends board ranks friends in different
+	// tiers on it. Without this rule every post was refused and the friends board stayed empty.
+	{ pattern: /^DIW\d{6}A$/, max: INNINGS_MAX * 7, step: INNINGS_MAX, stepFromZero: true },
 	{ pattern: /^TRN\d{6}D\d{1,2}$/, max: 5000, step: null },
 	{ pattern: /^event_tier_[A-Za-z0-9_\-]{1,64}$/, max: 1000000, step: null },
 	{ pattern: /^season_[A-Za-z0-9_\-]{1,64}$/, max: 10000000, step: null },
